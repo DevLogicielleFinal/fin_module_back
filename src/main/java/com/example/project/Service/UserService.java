@@ -5,6 +5,8 @@ import com.example.project.Entity.User;
 import com.example.project.Security.JWTUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
+
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -47,5 +49,10 @@ public class UserService {
     public User findById(Long id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Utilisateur avec l'ID " + id + " non trouvé"));
+    }
+
+    public List<User> getUsersByIds(List<Long> userIds) {
+        // Récupère tous les utilisateurs correspondant aux IDs
+        return userRepository.findAllById(userIds);
     }
 }
