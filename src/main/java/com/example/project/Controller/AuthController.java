@@ -1,4 +1,6 @@
-package com.example.project;
+package com.example.project.Controller;
+import com.example.project.Service.LoginRequest;
+import com.example.project.Service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

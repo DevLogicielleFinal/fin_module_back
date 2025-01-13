@@ -1,6 +1,7 @@
-package com.example.project;
+package com.example.project.Controller;
 
-import org.springframework.http.HttpStatus;
+import com.example.project.Entity.User;
+import com.example.project.Service.UserService;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 

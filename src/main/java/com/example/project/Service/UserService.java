@@ -1,5 +1,7 @@
-package com.example.project;
+package com.example.project.Service;
 
+import com.example.project.Repository.UserRepository;
+import com.example.project.Entity.User;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import java.util.Optional;
@@ -31,12 +33,18 @@ public class UserService {
             // Vérifier le mot de passe
             if (passwordEncoder.matches(password, user.getPassword())) {
                 // Générer un JWT
-                return jwtUtil.generateToken(user.getEmail());
+                return jwtUtil.generateToken(user.getId());
             } else {
                 throw new IllegalArgumentException("Mot de passe incorrect");
             }
         } else {
             throw new IllegalArgumentException("Utilisateur non trouvé");
         }
+    }
+
+    // Méthode pour trouver un utilisateur par id
+    public User findById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Utilisateur avec l'ID " + id + " non trouvé"));
     }
 }
