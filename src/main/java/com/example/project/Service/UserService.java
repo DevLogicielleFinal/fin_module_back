@@ -2,6 +2,7 @@ package com.example.project.Service;
 
 import com.example.project.Repository.UserRepository;
 import com.example.project.Entity.User;
+import com.example.project.Security.JWTUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import java.util.Optional;

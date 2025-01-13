@@ -1,4 +1,4 @@
-package com.example.project.Service;
+package com.example.project.Security;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Component;
@@ -35,7 +35,7 @@ public class JWTUtil {
      * @return l'ID utilisateur
      */
     public String extractUserId(String token) {
-        return getClaims(token).getSubject(); // Le sujet du JWT est généralement l'email
+        return getClaims(token).getSubject();
     }
 
     /**

@@ -6,7 +6,10 @@ import com.example.project.Repository.ProjectRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class ProjectService {
@@ -34,5 +37,21 @@ public class ProjectService {
 
         // Enregistrer le projet dans la base de données
         return projectRepository.save(project);
+    }
+
+    // Récupérer les projets de l'utilisateur (en tant que créateur ou membre)
+    public List<Project> getProjectsByUser(Long userId) {
+        User user = userService.findById(userId);
+
+        // Trouver les projets dont l'utilisateur est le créateur ou un membre
+        List<Project> projectsCreatedByUser = projectRepository.findByCreator(user);  // Projets où l'utilisateur est créateur
+        List<Project> projectsUserIsMemberOf = projectRepository.findByMembersContains(user);  // Projets où l'utilisateur est membre
+
+        // Combiner les deux listes (en évitant les doublons)
+        Set<Project> allProjects = new HashSet<>();
+        allProjects.addAll(projectsCreatedByUser);
+        allProjects.addAll(projectsUserIsMemberOf);
+
+        return new ArrayList<>(allProjects);  // Retourner les projets sous forme de liste
     }
 }

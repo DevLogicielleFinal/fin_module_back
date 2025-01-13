@@ -1,4 +1,4 @@
-package com.example.project.Service;
+package com.example.project.DTO;
 
 public class LoginRequest {
     private String email;
