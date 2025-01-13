@@ -33,7 +33,7 @@ public class User {
     @OneToMany(mappedBy = "user")
     private Set<Task> taches = new HashSet<>();  // Tâches assignées à l'utilisateur
 
-    protected User() {}
+    public User() {}
 
     public User(String username, String email, String password) {
         this.username = username;
