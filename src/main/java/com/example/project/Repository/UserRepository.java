@@ -8,4 +8,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
     // Vous pouvez ajouter des requêtes personnalisées ici
     Optional<User> findByEmail(String email);
     Optional<User> findByUsername(String username);
+    Optional<User> findById(Long id);
 }
