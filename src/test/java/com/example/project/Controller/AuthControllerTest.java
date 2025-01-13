@@ -1,6 +1,6 @@
 package com.example.project.Controller;
 
-import com.example.project.Service.LoginRequest;
+import com.example.project.DTO.LoginRequest;
 import com.example.project.Service.UserService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
