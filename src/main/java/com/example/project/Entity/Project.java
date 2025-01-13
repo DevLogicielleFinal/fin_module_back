@@ -115,12 +115,10 @@ public class Project {
 
     public void addTask(Task task) {
         this.taches.add(task);
-        task.setProject(this); // Maintient la relation bidirectionnelle
     }
 
     public void removeTask(Task task) {
         this.taches.remove(task);
-        task.setProject(null); // Supprime la relation bidirectionnelle
     }
 
     public enum EtatProjet {
