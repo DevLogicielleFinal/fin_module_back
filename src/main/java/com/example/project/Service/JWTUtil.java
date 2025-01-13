@@ -1,4 +1,4 @@
-package com.example.project;
+package com.example.project.Service;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Component;

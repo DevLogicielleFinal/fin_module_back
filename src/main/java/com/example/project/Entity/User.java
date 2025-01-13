@@ -1,4 +1,4 @@
-package com.example.project;
+package com.example.project.Entity;
 
 import jakarta.persistence.*;
 import java.util.HashSet;

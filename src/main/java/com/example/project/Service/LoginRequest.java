@@ -1,4 +1,4 @@
-package com.example.project;
+package com.example.project.Service;
 
 public class LoginRequest {
     private String email;

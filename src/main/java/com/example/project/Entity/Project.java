@@ -1,9 +1,10 @@
-package com.example.project;
-
+package com.example.project.Entity;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -34,14 +35,14 @@ public class Project {
     )
     private Set<User> members = new HashSet<>();  // Membres assignés au projet
 
-    @OneToMany(mappedBy = "projet")
-    private Set<Task> taches = new HashSet<>();
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Task> taches = new ArrayList<>();
 
     public Project() {}
 
     // Constructeur avec arguments pour simplifier l'instanciation
-    public Project(String nom, String description, LocalDate dateCreation, EtatProjet state) {
-        this.name = nom;
+    public Project(String name, String description, LocalDate dateCreation, EtatProjet state) {
+        this.name = name;
         this.description = description;
         this.dateCreation = dateCreation;
         this.state = state;
@@ -64,6 +65,30 @@ public class Project {
         this.name = name;
     }
 
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public LocalDate getDateCreation() {
+        return dateCreation;
+    }
+
+    public void setDateCreation(LocalDate dateCreation) {
+        this.dateCreation = dateCreation;
+    }
+
+    public EtatProjet getState() {
+        return state;
+    }
+
+    public void setState(EtatProjet state) {
+        this.state = state;
+    }
+
     public User getCreator() {
         return creator;
     }
@@ -80,7 +105,26 @@ public class Project {
         this.members = members;
     }
 
+    public void addMember(User user) {
+        this.members.add(user);
+    }
+
+    public void removeMember(User user) {
+        this.members.remove(user);
+    }
+
+    public void addTask(Task task) {
+        this.taches.add(task);
+        task.setProject(this); // Maintient la relation bidirectionnelle
+    }
+
+    public void removeTask(Task task) {
+        this.taches.remove(task);
+        task.setProject(null); // Supprime la relation bidirectionnelle
+    }
+
     public enum EtatProjet {
+        TO_DO,
         EN_COURS,
         TERMINE
     }
