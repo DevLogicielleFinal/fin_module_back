@@ -3,10 +3,7 @@ name: CI-Backend
 on:
   push:
     branches:
-      - main
-  pull_request:
-    branches:
-      - main
+      - pipeline-test
 
 jobs:
   build:
