@@ -5,26 +5,53 @@ import java.time.LocalDate;
 
 @Entity
 public class Task {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String description;
 
-    private LocalDate dateLimite;
+    private LocalDate dueDate;
 
     @Enumerated(EnumType.STRING)
-    private EtatTache etat;  // Enum représentant l'état de la tâche (to-do, en cours, terminé)
+    private StateTask state; // Enum representing the task state
 
     @ManyToOne
     @JoinColumn(name = "user_id")
-    private User user;  // L'utilisateur assigné à la tâche
+    private User user; // The user assigned to the task
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id", nullable = false)
-    private Project project;  // Le projet auquel la tâche est liée
+    private Project project; // The project to which the task is linked
 
-    // Getters et setters
+    public enum StateTask {
+        TO_DO,
+        IN_PROGRESS,
+        DONE
+    }
+
+    // ---------------------------
+    // Constructors
+    // ---------------------------
+
+    public Task() {
+        // No-argument constructor (obligatoire pour JPA)
+    }
+
+    public Task(Long id, String description, LocalDate dueDate, StateTask state, User user, Project project) {
+        this.id = id;
+        this.description = description;
+        this.dueDate = dueDate;
+        this.state = state;
+        this.user = user;
+        this.project = project;
+    }
+
+    // ---------------------------
+    // Getters and Setters
+    // ---------------------------
+
     public Long getId() {
         return id;
     }
@@ -41,20 +68,20 @@ public class Task {
         this.description = description;
     }
 
-    public LocalDate getDateLimite() {
-        return dateLimite;
+    public LocalDate getDueDate() {
+        return dueDate;
     }
 
-    public void setDateLimite(LocalDate dateLimite) {
-        this.dateLimite = dateLimite;
+    public void setDueDate(LocalDate dueDate) {
+        this.dueDate = dueDate;
     }
 
-    public EtatTache getEtat() {
-        return etat;
+    public StateTask getState() {
+        return state;
     }
 
-    public void setEtat(EtatTache etat) {
-        this.etat = etat;
+    public void setState(StateTask state) {
+        this.state = state;
     }
 
     public User getUser() {
@@ -71,11 +98,5 @@ public class Task {
 
     public void setProject(Project project) {
         this.project = project;
-    }
-
-    public enum EtatTache {
-        TO_DO,
-        EN_COURS,
-        TERMINE
     }
 }

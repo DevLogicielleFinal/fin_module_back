@@ -1,5 +1,5 @@
 package com.example.project.Controller;
-import com.example.project.Service.LoginRequest;
+import com.example.project.DTO.LoginRequest;
 import com.example.project.Service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

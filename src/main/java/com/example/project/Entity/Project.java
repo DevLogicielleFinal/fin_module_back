@@ -1,5 +1,7 @@
 package com.example.project.Entity;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -14,8 +16,12 @@ public class Project {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotNull
+    @Size(min = 3, max = 50)
     private String name;
 
+    @NotNull
+    @Size(max = 500)
     private String description;
 
     private LocalDate dateCreation;
@@ -41,11 +47,12 @@ public class Project {
     public Project() {}
 
     // Constructeur avec arguments pour simplifier l'instanciation
-    public Project(String name, String description, LocalDate dateCreation, EtatProjet state) {
+    public Project(String name, String description, LocalDate dateCreation, EtatProjet state, User creator) {
         this.name = name;
         this.description = description;
         this.dateCreation = dateCreation;
         this.state = state;
+        this.creator = creator;
     }
 
     // Getters et Setters
@@ -115,12 +122,10 @@ public class Project {
 
     public void addTask(Task task) {
         this.taches.add(task);
-        task.setProject(this); // Maintient la relation bidirectionnelle
     }
 
     public void removeTask(Task task) {
         this.taches.remove(task);
-        task.setProject(null); // Supprime la relation bidirectionnelle
     }
 
     public enum EtatProjet {
