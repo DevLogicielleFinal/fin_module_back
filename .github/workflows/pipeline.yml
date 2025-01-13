@@ -1,0 +1,41 @@
+name: CI-Backend
+
+on:
+  push:
+    branches:
+      - main
+      - pipeline-test
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Vérification du code
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    # Configuration de Java et Maven
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Cache Maven dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-m2
+
+    # Construction du projet
+    - name: Build with Maven
+      run: mvn clean install
+
+    # Lancer les tests
+    - name: Run Tests
+      run: mvn test
