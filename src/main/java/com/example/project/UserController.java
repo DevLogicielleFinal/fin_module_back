@@ -20,14 +20,8 @@ public class UserController {
         return ResponseEntity.ok(savedUser);
     }
 
-    // Route pour connecter un utilisateur
-    @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody LoginRequest loginRequest) {
-        boolean success = userService.authenticate(loginRequest.getEmail(), loginRequest.getPassword());
-        if (success) {
-            return ResponseEntity.ok("Connexion réussie !");
-        } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Email ou mot de passe incorrect.");
-        }
+    @GetMapping("/protected")
+    public String testProtectedRoute(@RequestHeader("Authorization") String token) {
+        return "Accès autorisé. Token valide : " + token;
     }
 }
