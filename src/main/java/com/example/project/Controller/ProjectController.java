@@ -2,31 +2,27 @@ package com.example.project.Controller;
 import com.example.project.DTO.ProjectCreationDTO;
 import com.example.project.Entity.Project;
 import com.example.project.Service.ProjectService;
-import jakarta.validation.Valid;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/projects")
 public class ProjectController {
-    private final ProjectService projetService;
+    private final ProjectService projectService;
 
-    public ProjectController(ProjectService projetService) {
-        this.projetService = projetService;
-    }
-
-    @GetMapping
-    public List<Project> getProjetsUtilisateur(Authentication authentication) {
-        // Récupère le nom d'utilisateur depuis le token (Spring Security)
-        String username = authentication.getName();
-        return projetService.getProjetsByUtilisateur(username);
+    public ProjectController(ProjectService projectService) {
+        this.projectService = projectService;
     }
 
     @PostMapping
-    public Project creerProjet(@Valid @RequestBody ProjectCreationDTO projetDTO, Authentication authentication) {
-        String username = authentication.getName(); // Récupère l'utilisateur connecté
-        return projetService.creerProjet(username, projetDTO);
+    public Project createProject(@RequestBody ProjectCreationDTO projectCreationDTO) {
+        // Récupérer l'ID utilisateur depuis le token JWT via SecurityContextHolder
+        String userIdString = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        // Convertir l'ID utilisateur en Long (vérifiez si c'est possible)
+        Long userId = Long.parseLong(userIdString);
+
+        // Appeler la méthode du service pour créer le projet
+        return projectService.createProject(userId, projectCreationDTO);
     }
 }

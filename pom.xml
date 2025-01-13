@@ -30,6 +30,8 @@
 		<java.version>23</java.version>
 		<spring-security.version>6.4.2</spring-security.version>
 		<spring.version>6.2.1</spring.version>
+		<maven.compiler.source>17</maven.compiler.source>
+		<maven.compiler.target>17</maven.compiler.target>
 	</properties>
 	<dependencies>
 		<dependency>

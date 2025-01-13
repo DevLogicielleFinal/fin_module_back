@@ -3,7 +3,6 @@ import com.example.project.DTO.ProjectCreationDTO;
 import com.example.project.Entity.Project;
 import com.example.project.Entity.User;
 import com.example.project.Repository.ProjectRepository;
-import com.example.project.Repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -11,33 +10,29 @@ import java.util.List;
 
 @Service
 public class ProjectService {
-    private final ProjectRepository projetRepository;
-    private final UserRepository utilisateurRepository;
+    private final ProjectRepository projectRepository;
+    private final UserService userService;
 
-    public ProjectService(ProjectRepository projetRepository, UserRepository utilisateurRepository) {
-        this.projetRepository = projetRepository;
-        this.utilisateurRepository = utilisateurRepository;
+    public ProjectService(ProjectRepository projectRepository, UserService userService) {
+        this.projectRepository = projectRepository;
+        this.userService = userService;
     }
 
-    public List<Project> getProjetsByUtilisateur(String username) {
-        User utilisateur = utilisateurRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
-        return projetRepository.findByMembersContains(utilisateur);
-    }
+    public Project createProject(Long userId, ProjectCreationDTO projectCreationDTO) {
+        // Récupérer l'utilisateur à partir de son ID
+        User creator = userService.findById(userId);
 
-    public Project creerProjet(String username, ProjectCreationDTO projetDTO) {
-        User utilisateur = utilisateurRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+        // Mapper le DTO vers l'entité Project
+        Project project = new Project();
+        project.setName(projectCreationDTO.getName());
+        project.setDescription(projectCreationDTO.getDescription());
+        project.setDateCreation(LocalDate.now());  // Date de création actuelle
+        project.setState(Project.EtatProjet.TO_DO); // Etat initial (par défaut)
 
-        Project projet = new Project();
-        projet.setName(projetDTO.getName());
-        projet.setDescription(projetDTO.getDescription());
-        projet.setDateCreation(LocalDate.now());
-        projet.setState(Project.EtatProjet.EN_COURS);
+        // Assigner le créateur du projet
+        project.setCreator(creator);
 
-        // Ajoute l'utilisateur comme membre du projet
-        projet.getMembers().add(utilisateur);
-
-        return projetRepository.save(projet);
+        // Enregistrer le projet dans la base de données
+        return projectRepository.save(project);
     }
 }
