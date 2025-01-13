@@ -22,12 +22,15 @@ public class User {
     private String password;
 
     @Enumerated(EnumType.STRING)
-    private Role role;  // Rôle de l'utilisateur, peut être "ADMIN" ou "MEMBER"
+    private Role role;
 
-    @ManyToMany(mappedBy = "membres")
+    @OneToMany(mappedBy = "creator", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Project> createdProjects = new HashSet<>();
+
+    @ManyToMany(mappedBy = "members")
     private Set<Project> projets = new HashSet<>();  // Projets auxquels l'utilisateur participe
 
-    @OneToMany(mappedBy = "utilisateur")
+    @OneToMany(mappedBy = "user")
     private Set<Task> taches = new HashSet<>();  // Tâches assignées à l'utilisateur
 
     protected User() {}

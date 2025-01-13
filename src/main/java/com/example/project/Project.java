@@ -1,6 +1,8 @@
 package com.example.project;
 
 import jakarta.persistence.*;
+
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -10,30 +12,39 @@ public class Project {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     private String name;
+
     private String description;
+
     private LocalDate dateCreation;
-    private EtatProjet etat;
+
+    @Enumerated(EnumType.STRING)
+    private EtatProjet state;
+
     @ManyToOne
     @JoinColumn(name = "creator_id", nullable = false)
     private User creator;
 
     @ManyToMany
     @JoinTable(
-            name = "project_members",
-            joinColumns = @JoinColumn(name = "project_id"),
+            name = "projet_utilisateur",
+            joinColumns = @JoinColumn(name = "projet_id"),
             inverseJoinColumns = @JoinColumn(name = "user_id")
     )
-    private Set<User> members = new HashSet<>();
+    private Set<User> members = new HashSet<>();  // Membres assignés au projet
+
+    @OneToMany(mappedBy = "projet")
+    private Set<Task> taches = new HashSet<>();
 
     public Project() {}
 
     // Constructeur avec arguments pour simplifier l'instanciation
-    public Project(String nom, String description, LocalDate dateCreation, EtatProjet etat) {
+    public Project(String nom, String description, LocalDate dateCreation, EtatProjet state) {
         this.name = nom;
         this.description = description;
         this.dateCreation = dateCreation;
-        this.etat = etat;
+        this.state = state;
     }
 
     // Getters et Setters
@@ -67,5 +78,10 @@ public class Project {
 
     public void setMembers(Set<User> members) {
         this.members = members;
+    }
+
+    public enum EtatProjet {
+        EN_COURS,
+        TERMINE
     }
 }
