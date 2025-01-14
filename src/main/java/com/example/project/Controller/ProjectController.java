@@ -2,27 +2,52 @@ package com.example.project.Controller;
 import com.example.project.DTO.ProjectCreationDTO;
 import com.example.project.DTO.ProjectDTO;
 import com.example.project.DTO.UserDTO;
-import com.example.project.Entity.Project;
 import com.example.project.Service.AuthenticationService;
 import com.example.project.Service.ProjectService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+
+/**
+ * Contrôleur de gestion des projets.
+ * Fournit des routes pour créer un projet, récupérer les projets d'un utilisateur,
+ * assigner un utilisateur à un projet et obtenir les utilisateurs d'un projet.
+ */
 @RestController
 @RequestMapping("/api/projects")
 public class ProjectController {
+    /**
+     * Service de gestion des projets.
+     */
     private final ProjectService projectService;
+
+    /**
+     * Service d'authentification pour récupérer l'utilisateur authentifié.
+     */
     private final AuthenticationService authenticationService;
 
+    /**
+     * Constructeur pour injecter les services nécessaires.
+     *
+     * @param projectService Le service de gestion des projets.
+     * @param authenticationService Le service d'authentification pour récupérer l'utilisateur authentifié.
+     */
     public ProjectController(ProjectService projectService, AuthenticationService authenticationService) {
         this.projectService = projectService;
         this.authenticationService = authenticationService;
     }
 
+    /**
+     * Route pour créer un projet.
+     * Cette méthode crée un projet en utilisant les informations fournies dans le DTO de création de projet.
+     * Le projet est lié à l'utilisateur actuellement authentifié.
+     *
+     * @param projectCreationDTO Les informations de création du projet (nom, description, etc.).
+     * @return Une réponse HTTP indiquant le succès ou l'échec de la création du projet.
+     */
     @PostMapping
     public ResponseEntity<String> createProject(@RequestBody ProjectCreationDTO projectCreationDTO) {
         try {
@@ -39,13 +64,25 @@ public class ProjectController {
         }
     }
 
-    // Nouvelle route pour récupérer les projets de l'utilisateur authentifié
+    /**
+     * Route pour récupérer les projets de l'utilisateur authentifié.
+     * Cette méthode retourne la liste des projets auxquels l'utilisateur authentifié participe.
+     *
+     * @return Une liste de DTOs représentant les projets de l'utilisateur.
+     */
     @GetMapping("/me")
     public List<ProjectDTO> getUserProjects() {
         Long userId = authenticationService.getAuthenticatedUserId();
         return projectService.getProjectsByUser(userId);
     }
 
+    /**
+     * Route pour assigner l'utilisateur authentifié à un projet.
+     * Cette méthode assigne l'utilisateur authentifié au projet dont l'ID est spécifié.
+     *
+     * @param projectId L'ID du projet auquel l'utilisateur sera assigné.
+     * @return Une réponse HTTP indiquant si l'assignation a réussi ou échoué.
+     */
     @PostMapping("/{projectId}/assign")
     public ResponseEntity<String> assignAuthenticatedUserToProject(@PathVariable Long projectId) {
         try {
@@ -66,6 +103,13 @@ public class ProjectController {
         }
     }
 
+    /**
+     * Route pour récupérer la liste des utilisateurs assignés à un projet.
+     * Cette méthode retourne les utilisateurs qui sont membres d'un projet donné.
+     *
+     * @param projectId L'ID du projet pour lequel obtenir la liste des utilisateurs.
+     * @return Une liste de DTOs représentant les utilisateurs assignés au projet.
+     */
     @GetMapping("/{projectId}/users")
     public ResponseEntity<List<UserDTO>> getUsersByProject(@PathVariable Long projectId) {
         try {

@@ -5,6 +5,11 @@ import org.springframework.stereotype.Component;
 import java.security.Key;
 import java.util.Date;
 
+/**
+ * Utilitaire pour la gestion des JSON Web Tokens (JWT).
+ * Cette classe permet de générer, valider et extraire des informations d'un JWT.
+ * Elle utilise la bibliothèque `io.jsonwebtoken` pour la création et la validation des tokens.
+ */
 @Component
 public class JWTUtil {
 

@@ -12,6 +12,11 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Implémentation du service de gestion des tâches.
+ * Cette classe contient les méthodes pour ajouter, récupérer et assigner des tâches aux projets et aux utilisateurs.
+ * Elle implémente l'interface TaskService.
+ */
 @Service
 public class TaskServiceImpl implements TaskService {
 
@@ -19,6 +24,13 @@ public class TaskServiceImpl implements TaskService {
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
 
+    /**
+     * Constructeur de la classe TaskServiceImpl.
+     *
+     * @param taskRepository Le repository pour accéder aux tâches.
+     * @param projectRepository Le repository pour accéder aux projets.
+     * @param userRepository Le repository pour accéder aux utilisateurs.
+     */
     public TaskServiceImpl(TaskRepository taskRepository,
                            ProjectRepository projectRepository,
                            UserRepository userRepository) {
@@ -28,7 +40,15 @@ public class TaskServiceImpl implements TaskService {
     }
 
     /**
-     * Ajouter une tâche à un projet avec gestion de la concurrence
+     * Ajouter une tâche à un projet avec gestion de la concurrence.
+     * Si l'utilisateur spécifié existe, la tâche sera assignée à cet utilisateur.
+     * Si l'état de la tâche n'est pas précisé, l'état par défaut sera 'TO_DO'.
+     *
+     * @param projectId L'ID du projet auquel ajouter la tâche.
+     * @param taskDto Les informations de la tâche à ajouter.
+     * @return Le DTO de la tâche ajoutée.
+     * @throws ProjectNotFoundException Si le projet n'est pas trouvé.
+     * @throws UserNotFoundException Si l'utilisateur spécifié n'est pas trouvé.
      */
     @Override
     public TaskDto addTaskToProject(Long projectId, TaskDto taskDto) {
@@ -58,7 +78,11 @@ public class TaskServiceImpl implements TaskService {
     }
 
     /**
-     * Récupérer toutes les tâches d’un projet
+     * Récupérer toutes les tâches associées à un projet.
+     *
+     * @param projectId L'ID du projet.
+     * @return Une liste de DTO de tâches associées au projet.
+     * @throws ProjectNotFoundException Si le projet n'est pas trouvé.
      */
     @Override
     public List<TaskDto> getAllTasksByProject(Long projectId) {
@@ -73,7 +97,14 @@ public class TaskServiceImpl implements TaskService {
     }
 
     /**
-     * Assigner un utilisateur à une tâche avec gestion de la concurrence
+     * Assigner un utilisateur à une tâche avec gestion de la concurrence.
+     * Cette méthode associe un utilisateur à une tâche en vérifiant que la tâche et l'utilisateur existent.
+     *
+     * @param taskId L'ID de la tâche.
+     * @param userId L'ID de l'utilisateur à associer à la tâche.
+     * @return Le DTO de la tâche mise à jour.
+     * @throws TaskNotFoundException Si la tâche n'est pas trouvée.
+     * @throws UserNotFoundException Si l'utilisateur n'est pas trouvé.
      */
     @Override
     public TaskDto assignUserToTask(Long taskId, Long userId) {
@@ -93,6 +124,15 @@ public class TaskServiceImpl implements TaskService {
         }
     }
 
+    /**
+     * Changer l'état d'une tâche.
+     *
+     * @param taskId L'ID de la tâche dont l'état doit être modifié.
+     * @param newState Le nouvel état sous forme de chaîne (ex. "TO_DO", "IN_PROGRESS", "DONE").
+     * @return Le DTO de la tâche mise à jour.
+     * @throws TaskNotFoundException Si la tâche n'est pas trouvée.
+     * @throws RuntimeException Si l'état est invalide.
+     */
     public TaskDto changeTaskState(Long taskId, String newState) {
         // Récupérer la tâche
         Task task = taskRepository.findById(taskId)
@@ -115,7 +155,12 @@ public class TaskServiceImpl implements TaskService {
         return mapToDto(savedTask);
     }
 
-
+    /**
+     * Mapper une entité Task en un DTO TaskDto.
+     *
+     * @param task L'entité Task à mapper.
+     * @return Le DTO TaskDto correspondant.
+     */
     private TaskDto mapToDto(Task task) {
         TaskDto dto = new TaskDto();
         dto.setId(task.getId());
@@ -134,7 +179,10 @@ public class TaskServiceImpl implements TaskService {
     }
 
     /**
-     * Mapper un DTO en entité Task
+     * Mapper un DTO TaskDto en une entité Task.
+     *
+     * @param taskDto Le DTO TaskDto à mapper.
+     * @return L'entité Task correspondante.
      */
     private Task mapToEntity(TaskDto taskDto) {
         Task task = new Task();
