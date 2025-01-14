@@ -1,13 +1,15 @@
 package com.example.project.Entity;
+
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Entity
 public class Project {
@@ -39,10 +41,13 @@ public class Project {
             joinColumns = @JoinColumn(name = "projet_id"),
             inverseJoinColumns = @JoinColumn(name = "user_id")
     )
-    private Set<User> members = new HashSet<>();  // Membres assignés au projet
+    private Set<User> members = new HashSet<>();
 
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Task> taches = new ArrayList<>();
+
+    @Transient // Indique que cette propriété n'est pas persistée en base
+    private final Lock lock = new ReentrantLock();
 
     public Project() {}
 
@@ -104,6 +109,15 @@ public class Project {
         this.creator = creator;
     }
 
+    // Méthodes pour la gestion des membres et des tâches avec verrouillage sécurisé
+
+    public void lockProject() {
+        lock.lock();
+    }
+    public void unlockProject() {
+        lock.unlock();
+    }
+
     public Set<User> getMembers() {
         return members;
     }
@@ -113,19 +127,39 @@ public class Project {
     }
 
     public void addMember(User user) {
-        this.members.add(user);
+        lock.lock();
+        try {
+            this.members.add(user);
+        } finally {
+            lock.unlock();
+        }
     }
 
     public void removeMember(User user) {
-        this.members.remove(user);
+        lock.lock();
+        try {
+            this.members.remove(user);
+        } finally {
+            lock.unlock();
+        }
     }
 
     public void addTask(Task task) {
-        this.taches.add(task);
+        lock.lock();
+        try {
+            this.taches.add(task);
+        } finally {
+            lock.unlock();
+        }
     }
 
     public void removeTask(Task task) {
-        this.taches.remove(task);
+        lock.lock();
+        try {
+            this.taches.remove(task);
+        } finally {
+            lock.unlock();
+        }
     }
 
     public enum EtatProjet {
