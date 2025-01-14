@@ -38,6 +38,9 @@ public class ProjectService {
         // Assigner le créateur du projet
         project.setCreator(creator);
 
+        // Ajouter le créateur comme membre du projet
+        project.addMember(creator);
+
         // Enregistrer le projet dans la base de données
         return projectRepository.save(project);
     }
