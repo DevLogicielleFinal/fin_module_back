@@ -8,15 +8,35 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-
+/**
+ * Configuration de la sécurité de l'application.
+ * Cette classe configure les règles de sécurité pour l'application,
+ * y compris la gestion des requêtes HTTP, les filtres de sécurité et
+ * la gestion des sessions.
+ * Elle permet aussi de configurer les accès aux différentes routes de l'application.
+ */
 @Configuration
 public class SecurityConfig {
     private final JWTFilter jwtFilter;
 
+    /**
+     * Constructeur de la configuration de sécurité.
+     *
+     * @param jwtFilter Le filtre JWT personnalisé.
+     */
     public SecurityConfig(JWTFilter jwtFilter) {
         this.jwtFilter = jwtFilter;
     }
 
+    /**
+     * Définir la chaîne de filtres de sécurité.
+     * Cette méthode configure les règles de sécurité pour les requêtes HTTP.
+     * Elle définit les règles d'autorisation, la gestion des sessions et l'ajout du filtre JWT.
+     *
+     * @param http L'objet HttpSecurity utilisé pour configurer la sécurité HTTP.
+     * @return Le filtre de sécurité configuré.
+     * @throws Exception Si une erreur survient lors de la configuration de la sécurité.
+     */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -40,6 +60,13 @@ public class SecurityConfig {
         return http.build();
     }
 
+    /**
+     * Définir un encodeur de mot de passe.
+     * Cette méthode définit un encodeur de mot de passe, utilisé pour sécuriser les mots de passe dans l'application.
+     * Ici, on utilise BCrypt pour l'encodeur.
+     *
+     * @return L'encodeur de mot de passe.
+     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         // Ici, on utilise BCrypt pour sécuriser les mots de passe
