@@ -101,14 +101,59 @@ public class ProjectControllerTest {
         Long projectId = 1L;
         Long authenticatedUserId = 1L;
 
+        // Mock des dépendances
         when(authenticationService.getAuthenticatedUserId()).thenReturn(authenticatedUserId);
-        doNothing().when(projectService).assignUserToProject(projectId, authenticatedUserId);
+        when(projectService.assignUserToProject(projectId, authenticatedUserId)).thenReturn(null);
 
         // Exécution et vérifications
         mockMvc.perform(post("/api/projects/{projectId}/assign", projectId))
                 .andExpect(status().isOk())
                 .andExpect(content().string("User successfully assigned to the project."));
 
+        // Vérification des appels
+        verify(authenticationService, times(1)).getAuthenticatedUserId();
+        verify(projectService, times(1)).assignUserToProject(projectId, authenticatedUserId);
+    }
+
+    @Test
+    public void assignAuthenticatedUserToProject_ShouldReturnBadRequestOnIllegalArgument() throws Exception {
+        // Préparation des données
+        Long projectId = 1L;
+        Long authenticatedUserId = 1L;
+        String errorMessage = "User is already assigned to the project";
+
+        // Mock des dépendances
+        when(authenticationService.getAuthenticatedUserId()).thenReturn(authenticatedUserId);
+        doThrow(new IllegalArgumentException(errorMessage))
+                .when(projectService).assignUserToProject(projectId, authenticatedUserId);
+
+        // Exécution et vérifications
+        mockMvc.perform(post("/api/projects/{projectId}/assign", projectId))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string(errorMessage));
+
+        // Vérification des appels
+        verify(authenticationService, times(1)).getAuthenticatedUserId();
+        verify(projectService, times(1)).assignUserToProject(projectId, authenticatedUserId);
+    }
+
+    @Test
+    public void assignAuthenticatedUserToProject_ShouldReturnInternalServerErrorOnGenericException() throws Exception {
+        // Préparation des données
+        Long projectId = 1L;
+        Long authenticatedUserId = 1L;
+
+        // Mock des dépendances
+        when(authenticationService.getAuthenticatedUserId()).thenReturn(authenticatedUserId);
+        doThrow(new RuntimeException("Unexpected error"))
+                .when(projectService).assignUserToProject(projectId, authenticatedUserId);
+
+        // Exécution et vérifications
+        mockMvc.perform(post("/api/projects/{projectId}/assign", projectId))
+                .andExpect(status().isInternalServerError())
+                .andExpect(content().string("An error occurred while assigning the user to the project."));
+
+        // Vérification des appels
         verify(authenticationService, times(1)).getAuthenticatedUserId();
         verify(projectService, times(1)).assignUserToProject(projectId, authenticatedUserId);
     }
