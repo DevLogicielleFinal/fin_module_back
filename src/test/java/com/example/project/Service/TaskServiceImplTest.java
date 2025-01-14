@@ -19,6 +19,9 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+/**
+ * Tests pour TaskServiceImpl (sans lockTask/unlockTask).
+ */
 @ExtendWith(org.mockito.junit.jupiter.MockitoExtension.class)
 class TaskServiceImplTest {
 
@@ -70,7 +73,7 @@ class TaskServiceImplTest {
     }
 
     // -------------------------------------------------------------------------
-    // 1) Test de addTaskToProject
+    // 1) Test addTaskToProject
     // -------------------------------------------------------------------------
     @Nested
     @DisplayName("addTaskToProject tests")
@@ -81,7 +84,6 @@ class TaskServiceImplTest {
         void testAddTaskToProjectSuccess() {
             // Arrange
             when(projectRepository.findById(1L)).thenReturn(Optional.of(project));
-            // On simule la sauvegarde : on retourne la tâche qu'on lui passe
             when(taskRepository.save(any(Task.class))).thenAnswer(invocation -> {
                 Task argTask = invocation.getArgument(0);
                 argTask.setId(999L); // simulons un ID généré par la BD
@@ -94,12 +96,13 @@ class TaskServiceImplTest {
             // Assert
             verify(projectRepository).findById(1L);
             verify(taskRepository).save(any(Task.class));
+
             assertNotNull(result, "Le TaskDto retourné ne doit pas être null");
             assertEquals(999L, result.getId(), "L'ID doit correspondre à celui généré par la BD (999)");
-            assertEquals("DTO Task", result.getDescription(), "La description doit être celle du DTO");
-            assertEquals("TO_DO", result.getState(), "L'état par défaut est TO_DO");
+            assertEquals("DTO Task", result.getDescription());
+            assertEquals("TO_DO", result.getState());
             assertEquals(1L, result.getProjectId());
-            assertNull(result.getUserId(), "Pas d'utilisateur assigné dans ce test");
+            assertNull(result.getUserId(), "Pas d'utilisateur assigné");
         }
 
         @Test
@@ -111,9 +114,9 @@ class TaskServiceImplTest {
             // Act & Assert
             assertThrows(
                     TaskServiceImpl.ProjectNotFoundException.class,
-                    () -> taskService.addTaskToProject(1L, taskDto),
-                    "Doit lever ProjectNotFoundException"
+                    () -> taskService.addTaskToProject(1L, taskDto)
             );
+
             verify(projectRepository).findById(1L);
             verify(taskRepository, never()).save(any(Task.class));
         }
@@ -132,6 +135,7 @@ class TaskServiceImplTest {
 
             // Assert
             verify(userRepository).findById(10L);
+            verify(taskRepository).save(any(Task.class));
             assertEquals(10L, result.getUserId(), "Le userId dans le DTO doit être 10");
         }
 
@@ -146,9 +150,9 @@ class TaskServiceImplTest {
             // Act & Assert
             assertThrows(
                     TaskServiceImpl.UserNotFoundException.class,
-                    () -> taskService.addTaskToProject(1L, taskDto),
-                    "Doit lever UserNotFoundException"
+                    () -> taskService.addTaskToProject(1L, taskDto)
             );
+
             verify(projectRepository).findById(1L);
             verify(userRepository).findById(9999L);
             verify(taskRepository, never()).save(any(Task.class));
@@ -156,7 +160,7 @@ class TaskServiceImplTest {
     }
 
     // -------------------------------------------------------------------------
-    // 2) Test de getAllTasksByProject
+    // 2) Test getAllTasksByProject
     // -------------------------------------------------------------------------
     @Nested
     @DisplayName("getAllTasksByProject tests")
@@ -165,9 +169,8 @@ class TaskServiceImplTest {
         @Test
         @DisplayName("Doit retourner toutes les tâches d'un projet existant")
         void testGetAllTasksSuccess() {
-            // Arrange
             when(projectRepository.existsById(1L)).thenReturn(true);
-            // On simule deux tâches dans la liste
+
             Task t1 = new Task();
             t1.setId(101L);
             t1.setDescription("Task 1");
@@ -195,22 +198,20 @@ class TaskServiceImplTest {
         @Test
         @DisplayName("Doit lever ProjectNotFoundException si le projet n'existe pas")
         void testGetAllTasksProjectNotFound() {
-            // Arrange
             when(projectRepository.existsById(1L)).thenReturn(false);
 
-            // Act & Assert
             assertThrows(
                     TaskServiceImpl.ProjectNotFoundException.class,
-                    () -> taskService.getAllTasksByProject(1L),
-                    "Doit lever ProjectNotFoundException si le projet n'existe pas"
+                    () -> taskService.getAllTasksByProject(1L)
             );
+
             verify(projectRepository).existsById(1L);
             verify(taskRepository, never()).findByProjectId(anyLong());
         }
     }
 
     // -------------------------------------------------------------------------
-    // 3) Test de assignUserToTask
+    // 3) Test assignUserToTask
     // -------------------------------------------------------------------------
     @Nested
     @DisplayName("assignUserToTask tests")
@@ -219,15 +220,12 @@ class TaskServiceImplTest {
         @Test
         @DisplayName("Doit assigner un user à une tâche si les deux existent")
         void testAssignUserToTaskSuccess() {
-            // Arrange
             when(taskRepository.findById(100L)).thenReturn(Optional.of(task));
             when(userRepository.findById(10L)).thenReturn(Optional.of(user));
             when(taskRepository.save(any(Task.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-            // Act
             TaskDto result = taskService.assignUserToTask(100L, 10L);
 
-            // Assert
             verify(taskRepository).findById(100L);
             verify(userRepository).findById(10L);
             verify(taskRepository).save(any(Task.class));
@@ -240,15 +238,13 @@ class TaskServiceImplTest {
         @Test
         @DisplayName("Doit lever TaskNotFoundException si la tâche n'existe pas")
         void testAssignUserTaskNotFound() {
-            // Arrange
             when(taskRepository.findById(999L)).thenReturn(Optional.empty());
 
-            // Act & Assert
             assertThrows(
                     TaskServiceImpl.TaskNotFoundException.class,
-                    () -> taskService.assignUserToTask(999L, 10L),
-                    "Doit lever TaskNotFoundException si la tâche n'est pas trouvée"
+                    () -> taskService.assignUserToTask(999L, 10L)
             );
+
             verify(taskRepository).findById(999L);
             verifyNoMoreInteractions(userRepository);
             verify(taskRepository, never()).save(any(Task.class));
@@ -257,18 +253,67 @@ class TaskServiceImplTest {
         @Test
         @DisplayName("Doit lever UserNotFoundException si l'utilisateur n'existe pas")
         void testAssignUserUserNotFound() {
-            // Arrange
             when(taskRepository.findById(100L)).thenReturn(Optional.of(task));
             when(userRepository.findById(9999L)).thenReturn(Optional.empty());
 
-            // Act & Assert
             assertThrows(
                     TaskServiceImpl.UserNotFoundException.class,
-                    () -> taskService.assignUserToTask(100L, 9999L),
-                    "Doit lever UserNotFoundException si l'utilisateur n'est pas trouvé"
+                    () -> taskService.assignUserToTask(100L, 9999L)
             );
+
             verify(taskRepository).findById(100L);
             verify(userRepository).findById(9999L);
+            verify(taskRepository, never()).save(any(Task.class));
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // 4) Test changeTaskState
+    // -------------------------------------------------------------------------
+    @Nested
+    @DisplayName("changeTaskState tests")
+    class ChangeTaskStateTests {
+
+        @Test
+        @DisplayName("Doit changer l'état de la tâche si la tâche existe et l'état est valide")
+        void testChangeTaskStateSuccess() {
+            when(taskRepository.findById(100L)).thenReturn(Optional.of(task));
+            when(taskRepository.save(any(Task.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+            TaskDto result = taskService.changeTaskState(100L, "DONE");
+
+            verify(taskRepository).findById(100L);
+            verify(taskRepository).save(task);
+
+            assertEquals("DONE", result.getState());
+        }
+
+        @Test
+        @DisplayName("Doit lever TaskNotFoundException si la tâche n'existe pas")
+        void testChangeTaskStateNotFound() {
+            when(taskRepository.findById(999L)).thenReturn(Optional.empty());
+
+            assertThrows(
+                    TaskServiceImpl.TaskNotFoundException.class,
+                    () -> taskService.changeTaskState(999L, "IN_PROGRESS")
+            );
+
+            verify(taskRepository).findById(999L);
+            verify(taskRepository, never()).save(any(Task.class));
+        }
+
+        @Test
+        @DisplayName("Doit lever RuntimeException si l'état est invalide")
+        void testChangeTaskStateInvalid() {
+            when(taskRepository.findById(100L)).thenReturn(Optional.of(task));
+
+            // "INVALID_STATE" n'existe pas dans l'enum
+            assertThrows(
+                    RuntimeException.class,
+                    () -> taskService.changeTaskState(100L, "INVALID_STATE")
+            );
+
+            verify(taskRepository).findById(100L);
             verify(taskRepository, never()).save(any(Task.class));
         }
     }
