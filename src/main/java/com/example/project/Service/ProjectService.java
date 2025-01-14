@@ -113,8 +113,8 @@ public class ProjectService {
                 .collect(Collectors.toList());
 
         // Ajouter le créateur comme utilisateur du projet
-        User creator = project.getCreator();
-        members.add(new UserDTO(creator.getId(), creator.getUsername(), creator.getEmail()));
+//        User creator = project.getCreator();
+//        members.add(new UserDTO(creator.getId(), creator.getUsername(), creator.getEmail()));
 
         return members; // Retourne la liste des utilisateurs
     }
