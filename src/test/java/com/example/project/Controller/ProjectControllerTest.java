@@ -2,6 +2,8 @@ package com.example.project.Controller;
 
 import com.example.project.DTO.ProjectCreationDTO;
 import com.example.project.DTO.ProjectDTO;
+import com.example.project.Entity.Project;
+import com.example.project.Entity.User;
 import com.example.project.Service.AuthenticationService;
 import com.example.project.Service.ProjectService;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,34 +43,44 @@ public class ProjectControllerTest {
         mockMvc = MockMvcBuilders.standaloneSetup(projectController).build();
     }
 
-    /*@Test
+    @Test
     public void createProject_WithValidData_ShouldReturnSavedProject() throws Exception {
         // Préparation des données
         Long userId = 1L;
         ProjectCreationDTO projectCreationDTO = new ProjectCreationDTO("Test Project", "Description");
         String requestBody = """
-        {
-            "name": "Test Project",
-            "description": "Description"
-        }
-        """;
+    {
+        "name": "Test Project",
+        "description": "Description"
+    }
+    """;
+
+        User creator = new User();
+        creator.setId(userId);
+        creator.setUsername("creatorName");
+        creator.setEmail("creator@example.com");
+
+        Project savedProject = new Project();
+        savedProject.setId(1L);
+        savedProject.setName("Test Project");
+        savedProject.setDescription("Description");
+        savedProject.setDateCreation(LocalDate.now());
+        savedProject.setState(Project.EtatProjet.TO_DO);
+        savedProject.setCreator(creator);
 
         when(authenticationService.getAuthenticatedUserId()).thenReturn(userId);
-        when(projectService.createProject(eq(userId), any(ProjectCreationDTO.class)))
-                .thenReturn(new ProjectDTO(1L, "Test Project", "Description", LocalDate.now(), "TO_DO", null, null));
+        when(projectService.createProject(eq(userId), any(ProjectCreationDTO.class))).thenReturn(savedProject);
 
         // Exécution et vérifications
         mockMvc.perform(post("/api/projects")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1L))
-                .andExpect(jsonPath("$.name").value("Test Project"))
-                .andExpect(jsonPath("$.description").value("Description"));
+                .andExpect(status().isCreated())
+                .andExpect(content().string("Project created successfully."));  // Vérifiez que le message est bien celui attendu
 
         verify(authenticationService, times(1)).getAuthenticatedUserId();
         verify(projectService, times(1)).createProject(eq(userId), any(ProjectCreationDTO.class));
-    }*/
+    }
 
     @Test
     public void getUserProjects_ShouldReturnProjectsList() throws Exception {
