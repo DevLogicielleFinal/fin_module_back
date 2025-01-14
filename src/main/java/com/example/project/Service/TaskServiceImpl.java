@@ -19,7 +19,6 @@ public class TaskServiceImpl implements TaskService {
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
 
-    // Constructeur sans Lombok
     public TaskServiceImpl(TaskRepository taskRepository,
                            ProjectRepository projectRepository,
                            UserRepository userRepository) {
@@ -103,6 +102,29 @@ public class TaskServiceImpl implements TaskService {
         return mapToDto(savedTask);
     }
 
+    public TaskDto changeTaskState(Long taskId, String newState) {
+        // Récupérer la tâche
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new TaskNotFoundException(
+                        "Task not found with id: " + taskId
+                ));
+
+        // Convertir la chaine 'newState' en valeur de l'enum
+        try {
+            Task.StateTask state = Task.StateTask.valueOf(newState);
+            task.setState(state);
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Invalid state: " + newState);
+        }
+
+        // Sauvegarder la tâche
+        Task savedTask = taskRepository.save(task);
+
+        // Retourner un TaskDto mis à jour
+        return mapToDto(savedTask);
+    }
+
+
     private TaskDto mapToDto(Task task) {
         TaskDto dto = new TaskDto();
         dto.setId(task.getId());
@@ -122,7 +144,7 @@ public class TaskServiceImpl implements TaskService {
 
     private Task mapToEntity(TaskDto taskDto) {
         Task task = new Task();
-        task.setId(taskDto.getId());  // s'il n'est pas null, sinon la DB le générera
+        task.setId(taskDto.getId());
         task.setDescription(taskDto.getDescription());
         task.setDueDate(taskDto.getDueDate());
 
@@ -132,10 +154,6 @@ public class TaskServiceImpl implements TaskService {
         }
         return task;
     }
-
-    // ---------------------------------------------------------
-    // Exceptions internes (ou déplacez-les dans un package "exception")
-    // ---------------------------------------------------------
 
     public class ProjectNotFoundException extends RuntimeException {
         public ProjectNotFoundException(String message) {
