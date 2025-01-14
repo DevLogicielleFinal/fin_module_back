@@ -23,11 +23,19 @@ public class ProjectController {
     }
 
     @PostMapping
-    public Project createProject(@RequestBody ProjectCreationDTO projectCreationDTO) {
-        Long userId = authenticationService.getAuthenticatedUserId();
+    public ResponseEntity<String> createProject(@RequestBody ProjectCreationDTO projectCreationDTO) {
+        try {
+            Long userId = authenticationService.getAuthenticatedUserId();
 
-        // Appeler la méthode du service pour créer le projet
-        return projectService.createProject(userId, projectCreationDTO);
+            // Appeler la méthode du service pour créer le projet
+            projectService.createProject(userId, projectCreationDTO);
+
+            // Retourner une réponse de succès
+            return ResponseEntity.status(HttpStatus.CREATED).body("Project created successfully.");
+        } catch (Exception e) {
+            // Retourner une réponse d'erreur générique
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while creating the project.");
+        }
     }
 
     // Nouvelle route pour récupérer les projets de l'utilisateur authentifié
