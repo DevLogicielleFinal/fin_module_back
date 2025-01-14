@@ -10,4 +10,6 @@ public interface TaskService {
     public TaskDto addTaskToProject(Long projectId, TaskDto taskDto);
     public List<TaskDto> getAllTasksByProject(Long projectId);
     public TaskDto assignUserToTask(Long taskId, Long userId);
+
+    public TaskDto changeTaskState(Long taskId, String newState);
 }

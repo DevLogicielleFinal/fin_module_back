@@ -1,6 +1,7 @@
 package com.example.project.Controller;
 import com.example.project.DTO.ProjectCreationDTO;
 import com.example.project.DTO.ProjectDTO;
+import com.example.project.DTO.UserDTO;
 import com.example.project.Entity.Project;
 import com.example.project.Service.AuthenticationService;
 import com.example.project.Service.ProjectService;
@@ -23,11 +24,19 @@ public class ProjectController {
     }
 
     @PostMapping
-    public Project createProject(@RequestBody ProjectCreationDTO projectCreationDTO) {
-        Long userId = authenticationService.getAuthenticatedUserId();
+    public ResponseEntity<String> createProject(@RequestBody ProjectCreationDTO projectCreationDTO) {
+        try {
+            Long userId = authenticationService.getAuthenticatedUserId();
 
-        // Appeler la méthode du service pour créer le projet
-        return projectService.createProject(userId, projectCreationDTO);
+            // Appeler la méthode du service pour créer le projet
+            projectService.createProject(userId, projectCreationDTO);
+
+            // Retourner une réponse de succès
+            return ResponseEntity.status(HttpStatus.CREATED).body("Project created successfully.");
+        } catch (Exception e) {
+            // Retourner une réponse d'erreur générique
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while creating the project.");
+        }
     }
 
     // Nouvelle route pour récupérer les projets de l'utilisateur authentifié
@@ -54,6 +63,18 @@ public class ProjectController {
         } catch (Exception e) {
             // Retourner une réponse d'erreur générique en cas d'autres problèmes
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while assigning the user to the project.");
+        }
+    }
+
+    @GetMapping("/{projectId}/users")
+    public ResponseEntity<List<UserDTO>> getUsersByProject(@PathVariable Long projectId) {
+        try {
+            List<UserDTO> users = projectService.getUsersByProject(projectId);
+            return ResponseEntity.ok(users); // Renvoie un statut HTTP 200 avec la liste des utilisateurs
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null); // Si le projet n'existe pas
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null); // En cas d'erreur serveur
         }
     }
 }

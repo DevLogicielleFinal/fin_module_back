@@ -34,6 +34,10 @@ public class ProjectService {
         project.setState(Project.EtatProjet.TO_DO);
         project.setCreator(creator);
 
+        // Ajouter le créateur comme membre du projet
+        project.addMember(creator);
+
+        // Enregistrer le projet dans la base de données
         return projectRepository.save(project);
     }
 
@@ -84,5 +88,22 @@ public class ProjectService {
         } finally {
             project.unlockProject();
         }
+    }
+
+    public List<UserDTO> getUsersByProject(Long projectId) {
+        // Récupérer le projet
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new IllegalArgumentException("Project not found"));
+
+        // Mapper les membres en UserDTO
+        List<UserDTO> members = project.getMembers().stream()
+                .map(user -> new UserDTO(user.getId(), user.getUsername(), user.getEmail()))
+                .collect(Collectors.toList());
+
+        // Ajouter le créateur comme utilisateur du projet
+//        User creator = project.getCreator();
+//        members.add(new UserDTO(creator.getId(), creator.getUsername(), creator.getEmail()));
+
+        return members; // Retourne la liste des utilisateurs
     }
 }
