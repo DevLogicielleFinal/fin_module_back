@@ -1,4 +1,5 @@
 package com.example.project.Service;
+
 import com.example.project.DTO.ProjectCreationDTO;
 import com.example.project.DTO.ProjectDTO;
 import com.example.project.DTO.UserDTO;
@@ -8,7 +9,6 @@ import com.example.project.Repository.ProjectRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -25,45 +25,38 @@ public class ProjectService {
     }
 
     public Project createProject(Long userId, ProjectCreationDTO projectCreationDTO) {
-        // Récupérer l'utilisateur à partir de son ID
         User creator = userService.findById(userId);
 
-        // Mapper le DTO vers l'entité Project
         Project project = new Project();
         project.setName(projectCreationDTO.getName());
         project.setDescription(projectCreationDTO.getDescription());
-        project.setDateCreation(LocalDate.now());  // Date de création actuelle
-        project.setState(Project.EtatProjet.TO_DO); // Etat initial (par défaut)
-
-        // Assigner le créateur du projet
+        project.setDateCreation(LocalDate.now());
+        project.setState(Project.EtatProjet.TO_DO);
         project.setCreator(creator);
+
+        // Ajouter le créateur comme membre du projet
+        project.addMember(creator);
 
         // Enregistrer le projet dans la base de données
         return projectRepository.save(project);
     }
 
-    // Récupérer les projets de l'utilisateur (en tant que créateur ou membre)
     public List<ProjectDTO> getProjectsByUser(Long userId) {
         User user = userService.findById(userId);
 
-        // Trouver les projets dont l'utilisateur est le créateur ou un membre
-        List<Project> projectsCreatedByUser = projectRepository.findByCreator(user);  // Projets où l'utilisateur est créateur
-        List<Project> projectsUserIsMemberOf = projectRepository.findByMembersContains(user);  // Projets où l'utilisateur est membre
+        List<Project> projectsCreatedByUser = projectRepository.findByCreator(user);
+        List<Project> projectsUserIsMemberOf = projectRepository.findByMembersContains(user);
 
-        // Combiner les deux listes (en évitant les doublons)
         Set<Project> allProjects = new HashSet<>();
         allProjects.addAll(projectsCreatedByUser);
         allProjects.addAll(projectsUserIsMemberOf);
 
-        // Mapper les entités en DTOs
-        List<ProjectDTO> projectDTOs = allProjects.stream().map(project -> {
-            // Mapper le créateur et les membres du projet
+        return allProjects.stream().map(project -> {
             UserDTO creatorDTO = new UserDTO(project.getCreator().getId(), project.getCreator().getUsername(), project.getCreator().getEmail());
             List<UserDTO> membersDTO = project.getMembers().stream()
                     .map(member -> new UserDTO(member.getId(), member.getUsername(), member.getEmail()))
                     .collect(Collectors.toList());
 
-            // Retourner le DTO du projet
             return new ProjectDTO(
                     project.getId(),
                     project.getName(),
@@ -74,28 +67,43 @@ public class ProjectService {
                     membersDTO
             );
         }).collect(Collectors.toList());
-
-        return projectDTOs;
-        //return new ArrayList<>(allProjects);
     }
 
     public Project assignUserToProject(Long projectId, Long userId) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new IllegalArgumentException("Project not found"));
+
+        User user = userService.findById(userId);
+
+        // Utilisation du verrou pour gérer la concurrence
+        try {
+            project.lockProject();
+
+            if (project.getMembers().contains(user)) {
+                throw new IllegalArgumentException("User is already assigned to the project");
+            }
+
+            project.addMember(user);
+            return projectRepository.save(project);
+        } finally {
+            project.unlockProject();
+        }
+    }
+
+    public List<UserDTO> getUsersByProject(Long projectId) {
         // Récupérer le projet
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new IllegalArgumentException("Project not found"));
 
-        // Récupérer l'utilisateur via le service
-        User user = userService.findById(userId);
+        // Mapper les membres en UserDTO
+        List<UserDTO> members = project.getMembers().stream()
+                .map(user -> new UserDTO(user.getId(), user.getUsername(), user.getEmail()))
+                .collect(Collectors.toList());
 
-        // Vérifier si l'utilisateur est déjà assigné au projet
-        if (project.getMembers().contains(user)) {
-            throw new IllegalArgumentException("User is already assigned to the project");
-        }
+        // Ajouter le créateur comme utilisateur du projet
+//        User creator = project.getCreator();
+//        members.add(new UserDTO(creator.getId(), creator.getUsername(), creator.getEmail()));
 
-        // Ajouter l'utilisateur au projet
-        project.addMember(user);
-
-        // Sauvegarder les modifications
-        return projectRepository.save(project);
+        return members; // Retourne la liste des utilisateurs
     }
 }
