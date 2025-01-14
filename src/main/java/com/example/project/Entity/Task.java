@@ -2,6 +2,8 @@ package com.example.project.Entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDate;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Entity
 public class Task {
@@ -15,15 +17,18 @@ public class Task {
     private LocalDate dueDate;
 
     @Enumerated(EnumType.STRING)
-    private StateTask state; // Enum representing the task state
+    private StateTask state; // Enum représentant l'état de la tâche
 
     @ManyToOne
     @JoinColumn(name = "user_id")
-    private User user; // The user assigned to the task
+    private User user; // Utilisateur assigné à la tâche
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id", nullable = false)
-    private Project project; // The project to which the task is linked
+    private Project project; // Projet lié à la tâche
+
+    @Transient // Non persisté en base
+    private final Lock lock = new ReentrantLock();
 
     public enum StateTask {
         TO_DO,
@@ -32,11 +37,10 @@ public class Task {
     }
 
     // ---------------------------
-    // Constructors
+    // Constructeurs
     // ---------------------------
-
     public Task() {
-        // No-argument constructor (obligatoire pour JPA)
+        // Constructeur sans argument (requis par JPA)
     }
 
     public Task(Long id, String description, LocalDate dueDate, StateTask state, User user, Project project) {
@@ -49,9 +53,19 @@ public class Task {
     }
 
     // ---------------------------
-    // Getters and Setters
+    // Méthodes de gestion de verrouillage
     // ---------------------------
+    public void lockTask() {
+        lock.lock();
+    }
 
+    public void unlockTask() {
+        lock.unlock();
+    }
+
+    // ---------------------------
+    // Getters et Setters
+    // ---------------------------
     public Long getId() {
         return id;
     }

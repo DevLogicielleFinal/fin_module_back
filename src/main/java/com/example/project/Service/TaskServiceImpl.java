@@ -28,17 +28,13 @@ public class TaskServiceImpl implements TaskService {
     }
 
     /**
-     * 1. Créer une nouvelle tâche et l’associer à un projet
+     * Ajouter une tâche à un projet avec gestion de la concurrence
      */
+    @Override
     public TaskDto addTaskToProject(Long projectId, TaskDto taskDto) {
-
-        // 1. Récupérer le projet
         Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new ProjectNotFoundException(
-                        "Project not found with id: " + projectId
-                ));
+                .orElseThrow(() -> new ProjectNotFoundException("Project not found with id: " + projectId));
 
-        // 2. Mapper le TaskDto en entité Task
         Task task = mapToEntity(taskDto);
         task.setProject(project);
 
@@ -46,60 +42,55 @@ public class TaskServiceImpl implements TaskService {
             task.setState(Task.StateTask.TO_DO);
         }
 
-        // 3. Si un userId est présent dans le DTO, on assigne l'utilisateur
         if (taskDto.getUserId() != null) {
             User user = userRepository.findById(taskDto.getUserId())
-                    .orElseThrow(() -> new UserNotFoundException(
-                            "User not found with id: " + taskDto.getUserId()
-                    ));
+                    .orElseThrow(() -> new UserNotFoundException("User not found with id: " + taskDto.getUserId()));
             task.setUser(user);
         }
 
-        // 4. Persister la tâche
-        Task savedTask = taskRepository.save(task);
-
-        // 5. Retourner la tâche persistée sous forme de DTO
-        return mapToDto(savedTask);
+        try {
+            task.lockTask();
+            Task savedTask = taskRepository.save(task);
+            return mapToDto(savedTask);
+        } finally {
+            task.unlockTask();
+        }
     }
 
     /**
-     * 2. Récupérer toutes les tâches d’un projet
+     * Récupérer toutes les tâches d’un projet
      */
+    @Override
     public List<TaskDto> getAllTasksByProject(Long projectId) {
-        // Vérifier l'existence du projet
         if (!projectRepository.existsById(projectId)) {
             throw new ProjectNotFoundException("Project not found with id: " + projectId);
         }
 
-        // Récupérer les tâches du projet
         List<Task> tasks = taskRepository.findByProjectId(projectId);
-
         return tasks.stream()
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
     }
 
     /**
-     * 3. Assigner un utilisateur à une tâche
+     * Assigner un utilisateur à une tâche avec gestion de la concurrence
      */
+    @Override
     public TaskDto assignUserToTask(Long taskId, Long userId) {
-        // Récupérer la tâche
         Task task = taskRepository.findById(taskId)
-                .orElseThrow(() -> new TaskNotFoundException(
-                        "Task not found with id: " + taskId
-                ));
+                .orElseThrow(() -> new TaskNotFoundException("Task not found with id: " + taskId));
 
-        // Récupérer l’utilisateur
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException(
-                        "User not found with id: " + userId
-                ));
+                .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
 
-        // Assigner l’utilisateur
-        task.setUser(user);
-        Task savedTask = taskRepository.save(task);
-
-        return mapToDto(savedTask);
+        try {
+            task.lockTask();
+            task.setUser(user);
+            Task savedTask = taskRepository.save(task);
+            return mapToDto(savedTask);
+        } finally {
+            task.unlockTask();
+        }
     }
 
     public TaskDto changeTaskState(Long taskId, String newState) {
@@ -142,32 +133,34 @@ public class TaskServiceImpl implements TaskService {
         return dto;
     }
 
+    /**
+     * Mapper un DTO en entité Task
+     */
     private Task mapToEntity(TaskDto taskDto) {
         Task task = new Task();
         task.setId(taskDto.getId());
         task.setDescription(taskDto.getDescription());
         task.setDueDate(taskDto.getDueDate());
-
-        // Conversion du state (String -> Enum) si présent
         if (taskDto.getState() != null) {
             task.setState(Task.StateTask.valueOf(taskDto.getState()));
         }
         return task;
     }
 
-    public class ProjectNotFoundException extends RuntimeException {
+    // Exceptions internes
+    public static class ProjectNotFoundException extends RuntimeException {
         public ProjectNotFoundException(String message) {
             super(message);
         }
     }
 
-    public class UserNotFoundException extends RuntimeException {
+    public static class UserNotFoundException extends RuntimeException {
         public UserNotFoundException(String message) {
             super(message);
         }
     }
 
-    public class TaskNotFoundException extends RuntimeException {
+    public static class TaskNotFoundException extends RuntimeException {
         public TaskNotFoundException(String message) {
             super(message);
         }
